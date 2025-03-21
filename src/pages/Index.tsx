@@ -15,6 +15,19 @@ import {
   ConflictInfo 
 } from '@/types/scheduler';
 import { generateTimeSlots, getSampleData } from '@/utils/schedulerUtils';
+import { 
+  saveFaculty, 
+  loadFaculty, 
+  saveSubjects, 
+  loadSubjects, 
+  saveClassrooms, 
+  loadClassrooms, 
+  saveSchedule, 
+  loadSchedule, 
+  saveConflicts, 
+  loadConflicts,
+  clearAllData 
+} from '@/utils/storageUtils';
 import Header from '@/components/Header';
 import FacultyForm from '@/components/FacultyForm';
 import SubjectForm from '@/components/SubjectForm';
@@ -33,11 +46,40 @@ const Index = () => {
   const [schedule, setSchedule] = useState<ScheduleEntry[]>([]);
   const [conflicts, setConflicts] = useState<ConflictInfo[]>([]);
   const [useSampleData, setUseSampleData] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   
   // Initialize time slots
   useEffect(() => {
     setTimeSlots(generateTimeSlots());
   }, []);
+  
+  // Load data from localStorage on component mount
+  useEffect(() => {
+    const facultyData = loadFaculty();
+    const subjectsData = loadSubjects();
+    const classroomsData = loadClassrooms();
+    const scheduleData = loadSchedule();
+    const conflictsData = loadConflicts();
+    
+    setFaculty(facultyData);
+    setSubjects(subjectsData);
+    setClassrooms(classroomsData);
+    setSchedule(scheduleData);
+    setConflicts(conflictsData);
+    
+    setIsInitialized(true);
+  }, []);
+  
+  // Save data to localStorage whenever it changes
+  useEffect(() => {
+    if (isInitialized) {
+      saveFaculty(faculty);
+      saveSubjects(subjects);
+      saveClassrooms(classrooms);
+      saveSchedule(schedule);
+      saveConflicts(conflicts);
+    }
+  }, [faculty, subjects, classrooms, schedule, conflicts, isInitialized]);
   
   // Load sample data if requested
   useEffect(() => {
@@ -69,6 +111,15 @@ const Index = () => {
   }) => {
     setSchedule(result.schedule);
     setConflicts(result.conflicts);
+  };
+  
+  const handleResetData = () => {
+    setFaculty([]);
+    setSubjects([]);
+    setClassrooms([]);
+    setSchedule([]);
+    setConflicts([]);
+    clearAllData();
   };
   
   const handleEntryClick = (entry: ScheduleEntry) => {
@@ -147,6 +198,7 @@ const Index = () => {
               classrooms={classrooms}
               timeSlots={timeSlots}
               onScheduleGenerated={handleScheduleGenerated}
+              onResetData={handleResetData}
             />
             
             <div className="mt-4 text-center">
