@@ -21,11 +21,11 @@ interface ClassroomFormProps {
 const ClassroomForm: React.FC<ClassroomFormProps> = ({ onAddClassroom, className }) => {
   const [name, setName] = useState('');
   const [capacity, setCapacity] = useState('');
-  const [type, setType] = useState('');
+  const [type, setType] = useState('regular');
   const [building, setBuilding] = useState('');
   const [floor, setFloor] = useState('');
   
-  const roomTypes = ['', 'computer-lab', 'lab', 'lecture-hall', 'seminar-room'];
+  const roomTypes = ['regular', 'computer-lab', 'lab', 'lecture-hall', 'seminar-room'];
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +39,7 @@ const ClassroomForm: React.FC<ClassroomFormProps> = ({ onAddClassroom, className
       id: Date.now().toString(),
       name,
       capacity: parseInt(capacity),
-      type: type || undefined,
+      type: type === 'regular' ? undefined : type,
       building: building || undefined,
       floor: floor ? parseInt(floor) : undefined,
     };
@@ -50,7 +50,7 @@ const ClassroomForm: React.FC<ClassroomFormProps> = ({ onAddClassroom, className
     // Reset form
     setName('');
     setCapacity('');
-    setType('');
+    setType('regular');
     setBuilding('');
     setFloor('');
   };
@@ -96,9 +96,10 @@ const ClassroomForm: React.FC<ClassroomFormProps> = ({ onAddClassroom, className
               <SelectContent>
                 {roomTypes.map(roomType => (
                   <SelectItem key={roomType} value={roomType}>
-                    {roomType ? roomType.split('-').map(word => 
-                      word.charAt(0).toUpperCase() + word.slice(1)
-                    ).join(' ') : 'Regular Classroom'}
+                    {roomType === 'regular' ? 'Regular Classroom' : 
+                      roomType.split('-').map(word => 
+                        word.charAt(0).toUpperCase() + word.slice(1)
+                      ).join(' ')}
                   </SelectItem>
                 ))}
               </SelectContent>

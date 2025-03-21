@@ -28,9 +28,9 @@ const SubjectForm: React.FC<SubjectFormProps> = ({
   const [code, setCode] = useState('');
   const [facultyId, setFacultyId] = useState('');
   const [duration, setDuration] = useState('60');
-  const [requiredRoomType, setRequiredRoomType] = useState('');
+  const [requiredRoomType, setRequiredRoomType] = useState('none');
   
-  const roomTypes = ['', 'computer-lab', 'lab', 'lecture-hall', 'seminar-room'];
+  const roomTypes = ['none', 'computer-lab', 'lab', 'lecture-hall', 'seminar-room'];
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +46,7 @@ const SubjectForm: React.FC<SubjectFormProps> = ({
       code,
       facultyId,
       duration: parseInt(duration),
-      requiredRoomType: requiredRoomType || undefined,
+      requiredRoomType: requiredRoomType === 'none' ? undefined : requiredRoomType,
     };
     
     onAddSubject(newSubject);
@@ -57,7 +57,7 @@ const SubjectForm: React.FC<SubjectFormProps> = ({
     setCode('');
     setFacultyId('');
     setDuration('60');
-    setRequiredRoomType('');
+    setRequiredRoomType('none');
   };
   
   return (
@@ -97,13 +97,22 @@ const SubjectForm: React.FC<SubjectFormProps> = ({
                 <SelectValue placeholder="Select faculty" />
               </SelectTrigger>
               <SelectContent>
-                {facultyList.map(faculty => (
-                  <SelectItem key={faculty.id} value={faculty.id}>
-                    {faculty.name} ({faculty.department})
-                  </SelectItem>
-                ))}
+                {facultyList.length > 0 ? (
+                  facultyList.map(faculty => (
+                    <SelectItem key={faculty.id} value={faculty.id}>
+                      {faculty.name} ({faculty.department})
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-faculty">No faculty available</SelectItem>
+                )}
               </SelectContent>
             </Select>
+            {facultyList.length === 0 && (
+              <p className="text-xs text-amber-500 mt-1">
+                Please add faculty members first
+              </p>
+            )}
           </div>
           
           <div className="space-y-2">
@@ -130,9 +139,10 @@ const SubjectForm: React.FC<SubjectFormProps> = ({
             <SelectContent>
               {roomTypes.map(type => (
                 <SelectItem key={type} value={type}>
-                  {type ? type.split('-').map(word => 
-                    word.charAt(0).toUpperCase() + word.slice(1)
-                  ).join(' ') : 'Any Room Type'}
+                  {type === 'none' ? 'Any Room Type' : 
+                    type.split('-').map(word => 
+                      word.charAt(0).toUpperCase() + word.slice(1)
+                    ).join(' ')}
                 </SelectItem>
               ))}
             </SelectContent>
