@@ -81,21 +81,39 @@ export const checkForConflicts = (
   return conflicts;
 };
 
-// Generate available time slots for the week
+// Generate available time slots for the week, respecting lunch break
 export const generateTimeSlots = (): TimeSlot[] => {
   const days: Day[] = [
     "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"
   ];
   
-  const startHour = 8; // 8:00 AM
-  const endHour = 18; // 6:00 PM
+  const morningStartHour = 8; // 8:00 AM
+  const morningEndHour = 12; // 12:00 PM
+  const afternoonStartHour = 13; // 1:00 PM
+  const afternoonEndHour = 18; // 6:00 PM
   const interval = 60; // 60 minutes
   
   const timeSlots: TimeSlot[] = [];
   let id = 1;
   
   days.forEach(day => {
-    for (let hour = startHour; hour < endHour; hour++) {
+    // Morning slots
+    for (let hour = morningStartHour; hour < morningEndHour; hour++) {
+      const startTime = `${hour.toString().padStart(2, "0")}:00`;
+      const endTime = `${(hour + 1).toString().padStart(2, "0")}:00`;
+      
+      timeSlots.push({
+        id: id.toString(),
+        day,
+        startTime,
+        endTime,
+      });
+      
+      id++;
+    }
+    
+    // Afternoon slots (after lunch)
+    for (let hour = afternoonStartHour; hour < afternoonEndHour; hour++) {
       const startTime = `${hour.toString().padStart(2, "0")}:00`;
       const endTime = `${(hour + 1).toString().padStart(2, "0")}:00`;
       
