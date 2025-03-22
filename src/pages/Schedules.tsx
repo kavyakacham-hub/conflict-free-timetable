@@ -1,9 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Header from '@/components/Header';
 import { loadSchedule } from '@/utils/storageUtils';
 import TimetableView from '@/components/TimetableView';
+import AvailableResources from '@/components/AvailableResources';
 import { loadFaculty, loadSubjects, loadClassrooms } from '@/utils/storageUtils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Calendar, ClipboardList } from 'lucide-react';
 
 const Schedules = () => {
   const schedule = loadSchedule();
@@ -25,13 +28,36 @@ const Schedules = () => {
         
         <div className="glass rounded-lg p-6">
           {schedule.length > 0 ? (
-            <TimetableView 
-              schedule={schedule}
-              faculty={faculty}
-              subjects={subjects}
-              classrooms={classrooms}
-              onEntryClick={() => {}}
-            />
+            <Tabs defaultValue="timetable" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-6">
+                <TabsTrigger value="timetable" className="flex items-center gap-2">
+                  <Calendar size={16} />
+                  <span>Timetable</span>
+                </TabsTrigger>
+                <TabsTrigger value="available" className="flex items-center gap-2">
+                  <ClipboardList size={16} />
+                  <span>Available Resources</span>
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="timetable" className="animate-slide-in">
+                <TimetableView 
+                  schedule={schedule}
+                  faculty={faculty}
+                  subjects={subjects}
+                  classrooms={classrooms}
+                  onEntryClick={() => {}}
+                />
+              </TabsContent>
+              
+              <TabsContent value="available" className="animate-slide-in">
+                <AvailableResources
+                  faculty={faculty}
+                  classrooms={classrooms}
+                  schedule={schedule}
+                />
+              </TabsContent>
+            </Tabs>
           ) : (
             <div className="flex flex-col items-center justify-center p-12 border border-dashed rounded-lg">
               <p className="text-muted-foreground mb-4">No schedules have been generated yet</p>
