@@ -37,6 +37,19 @@ import ConflictsList from '@/components/ConflictsList';
 import DashboardStats from '@/components/DashboardStats';
 import ScheduleGeneration from '@/components/ScheduleGeneration';
 import { toast } from 'sonner';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
 
 const Index = () => {
   const [faculty, setFaculty] = useState<Faculty[]>([]);
@@ -103,6 +116,49 @@ const Index = () => {
   
   const handleAddClassroom = (newClassroom: Classroom) => {
     setClassrooms([...classrooms, newClassroom]);
+  };
+  
+  const handleDeleteFaculty = (id: string) => {
+    // Check if the faculty is being used in any subject
+    const facultyInUse = subjects.some(subject => subject.facultyId === id);
+    if (facultyInUse) {
+      toast.error("Cannot delete faculty as they are assigned to one or more subjects");
+      return;
+    }
+    
+    // Check if the faculty is being used in the schedule
+    const facultyInSchedule = schedule.some(entry => entry.facultyId === id);
+    if (facultyInSchedule) {
+      toast.error("Cannot delete faculty as they are part of the current schedule");
+      return;
+    }
+    
+    setFaculty(faculty.filter(f => f.id !== id));
+    toast.success("Faculty deleted successfully");
+  };
+  
+  const handleDeleteSubject = (id: string) => {
+    // Check if the subject is being used in the schedule
+    const subjectInSchedule = schedule.some(entry => entry.subjectId === id);
+    if (subjectInSchedule) {
+      toast.error("Cannot delete subject as it is part of the current schedule");
+      return;
+    }
+    
+    setSubjects(subjects.filter(s => s.id !== id));
+    toast.success("Subject deleted successfully");
+  };
+  
+  const handleDeleteClassroom = (id: string) => {
+    // Check if the classroom is being used in the schedule
+    const classroomInSchedule = schedule.some(entry => entry.classroomId === id);
+    if (classroomInSchedule) {
+      toast.error("Cannot delete classroom as it is part of the current schedule");
+      return;
+    }
+    
+    setClassrooms(classrooms.filter(c => c.id !== id));
+    toast.success("Classroom deleted successfully");
   };
   
   const handleScheduleGenerated = (result: { 
@@ -230,12 +286,42 @@ const Index = () => {
                   <h3 className="text-sm font-medium mb-4">Added Faculty ({faculty.length})</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {faculty.map(f => (
-                      <div key={f.id} className="border rounded-md p-4 hover-scale">
+                      <div key={f.id} className="border rounded-md p-4 hover-scale relative group">
                         <p className="font-medium">{f.name}</p>
                         <p className="text-sm text-muted-foreground">{f.department}</p>
                         <p className="text-xs mt-2">
                           Available slots: {f.availableTimeSlots.length}
                         </p>
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label="Delete faculty"
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Faculty</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete {f.name}? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                onClick={() => handleDeleteFaculty(f.id)}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     ))}
                   </div>
@@ -254,13 +340,43 @@ const Index = () => {
                   <h3 className="text-sm font-medium mb-4">Added Subjects ({subjects.length})</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {subjects.map(s => (
-                      <div key={s.id} className="border rounded-md p-4 hover-scale">
+                      <div key={s.id} className="border rounded-md p-4 hover-scale relative group">
                         <p className="font-medium">{s.name}</p>
                         <p className="text-sm">{s.code}</p>
                         <p className="text-xs mt-2">
                           Faculty: {faculty.find(f => f.id === s.facultyId)?.name || "Unknown"}
                         </p>
                         <p className="text-xs">Duration: {s.duration} minutes</p>
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label="Delete subject"
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Subject</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete {s.name} ({s.code})? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                onClick={() => handleDeleteSubject(s.id)}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     ))}
                   </div>
@@ -276,7 +392,7 @@ const Index = () => {
                   <h3 className="text-sm font-medium mb-4">Added Classrooms ({classrooms.length})</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {classrooms.map(c => (
-                      <div key={c.id} className="border rounded-md p-4 hover-scale">
+                      <div key={c.id} className="border rounded-md p-4 hover-scale relative group">
                         <p className="font-medium">{c.name}</p>
                         <p className="text-sm">Capacity: {c.capacity}</p>
                         {c.type && (
@@ -291,6 +407,36 @@ const Index = () => {
                             Location: {c.building}{c.floor !== undefined ? `, Floor ${c.floor}` : ''}
                           </p>
                         )}
+                        
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label="Delete classroom"
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Classroom</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete {c.name}? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                onClick={() => handleDeleteClassroom(c.id)}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     ))}
                   </div>
