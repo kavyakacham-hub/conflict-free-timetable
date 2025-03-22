@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   NavigationMenu,
   NavigationMenuContent,
@@ -11,6 +12,16 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle
 } from '@/components/ui/navigation-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { LogOut, User } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface HeaderProps {
   className?: string;
@@ -18,9 +29,17 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ className }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const currentPath = location.pathname;
   
   const isActive = (path: string) => currentPath === path;
+  
+  const handleLogout = () => {
+    logout();
+    toast.success('Successfully logged out');
+    navigate('/login');
+  };
   
   return (
     <header className={cn(
@@ -81,9 +100,32 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
       </NavigationMenu>
       
       <div className="flex items-center gap-2">
-        <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center">
-          <span className="text-xs font-medium text-secondary-foreground">TT</span>
-        </div>
+        {user && (
+          <DropdownMenu>
+            <DropdownMenuTrigger className="focus:outline-none">
+              <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors cursor-pointer">
+                <span className="text-xs font-medium text-secondary-foreground">{user.username.substring(0, 2).toUpperCase()}</span>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                <span>{user.username}</span>
+                <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                  {user.role}
+                </span>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className="text-destructive cursor-pointer flex items-center gap-2"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </header>
   );
